@@ -1,0 +1,73 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mcp-ghost"
+version = "0.1.0"
+description = "Intelligent MCP tool orchestration library with Claude Desktop-level capabilities"
+requires-python = ">=3.11"
+readme = "README.md"
+authors = [
+    { name = "June Kim", email = "kim.june.01@gmail.com" }
+]
+keywords = ["mcp", "llm", "tool-orchestration", "ai", "automation", "claude", "openai", "gemini"]
+license = {text = "MIT"}
+
+# Core dependencies - NO mcp-cli dependency
+dependencies = [
+    # MCP Protocol
+    "chuk-tool-processor>=0.1.7",
+    "chuk-mcp>=0.1.7",
+    
+    # LLM Providers
+    "openai>=1.55.3",
+    "anthropic>=0.51.0", 
+    "google-genai>=1.15.0",
+    
+    # Core utilities
+    "python-dotenv>=1.0.1",
+    "pydantic>=2.10.2",
+    
+    # Optional UI (for debugging)
+    "rich>=13.9.4",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.25.3",
+    "pytest-mock>=3.0.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+]
+testing = [
+    "respx>=0.20.0",         # HTTP mocking
+    "httpx>=0.25.0",
+]
+
+[project.scripts]
+mcp-ghost = "mcp_ghost.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = ["mcp_ghost"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+markers = [
+    "record_golden: Record new golden test",
+    "unit: Unit tests", 
+    "integration: Integration tests",
+    "slow: Slow tests requiring API calls",
+]
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
