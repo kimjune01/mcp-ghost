@@ -32,7 +32,7 @@ class OpenAIStyleMixin:
     """
 
     # ------------------------------------------------------------------ sanitise
-    _NAME_RE = re.compile(r"[^a-zA-Z0-9_-]")
+    _NAME_RE = re.compile(r"[^a-zA-Z0-9_]")
 
     @classmethod
     def _sanitize_tool_names(cls, tools: Optional[List[Tool]]) -> Optional[List[Tool]]:

@@ -64,7 +64,7 @@ You are an intelligent assistant capable of using tools to solve user queries ef
         tool_config = tool_config or self.default_tool_config
 
         # get the tools schema
-        tools_json_schema = json.dumps(tools, indent=2)
+        tools_json_schema = json.dumps(tools, indent=2, ensure_ascii=False)
 
         # perform replacements
         prompt = self.template.replace("{{ TOOL DEFINITIONS }}", tools_json_schema)
@@ -73,3 +73,26 @@ You are an intelligent assistant capable of using tools to solve user queries ef
 
         # return the prompt
         return prompt
+    
+    def generate(self, tools=None, namespace="mcp_ghost", additional_context=None):
+        """
+        Simple generate method that core.py expects.
+        """
+        tools = tools or []
+        context = {"tools": tools}
+        if additional_context:
+            context["custom_prompt"] = additional_context
+        return self.generate_prompt(context)
+    
+    def generate_for_tools_list(self, tools):
+        """
+        Generate system prompt for a list of tools.
+        
+        Args:
+            tools: List of tool dictionaries
+            
+        Returns:
+            str: Generated system prompt
+        """
+        context = {"tools": tools}
+        return self.generate_prompt(context)

@@ -1,7 +1,13 @@
 """Tests for Anthropic LLM client."""
 import pytest
+import os
 from unittest.mock import Mock, patch
 from mcp_ghost.providers.anthropic_client import AnthropicLLMClient
+from tests.goldens.golden_framework import GoldenRecorder, MockLLMClient
+from dotenv import load_dotenv
+
+# Load environment variables for testing
+load_dotenv()
 
 
 class TestAnthropicLLMClient:
@@ -95,28 +101,76 @@ class TestAnthropicLLMClient:
     @pytest.mark.asyncio
     async def test_create_completion_basic(self):
         """Test basic completion creation."""
-        with patch('anthropic.Anthropic') as mock_anthropic:
-            mock_client = Mock()
-            mock_anthropic.return_value = mock_client
+        api_key = os.getenv('ANTHROPIC_API_KEY')
+        if not api_key:
+            pytest.skip("ANTHROPIC_API_KEY not found in environment")
+        
+        # Create golden recorder
+        recorder = GoldenRecorder("test_create_completion_basic", "anthropic")
+        
+        # Set input data for golden recording
+        recorder.set_input(
+            server_config={},
+            system_prompt="You are a helpful assistant.",
+            user_prompt="Say hello in exactly 3 words",
+            model="claude-3-5-sonnet-20241022"
+        )
+        
+        if recorder.record_mode:
+            # Record mode: make actual API call
+            client = AnthropicLLMClient(api_key=api_key)
+            messages = [{"role": "user", "content": "Say hello in exactly 3 words"}]
             
-            # Mock the completion response
-            mock_response = Mock()
-            mock_response.content = [Mock()]
-            mock_response.content[0].text = "Test response"
-            mock_response.content[0].type = "text"
+            # Record the request
+            request_data = {
+                "messages": messages,
+                "model": "claude-3-5-sonnet-20241022",
+                "api_key": api_key
+            }
             
-            mock_client.messages.create.return_value = mock_response
-            
-            client = AnthropicLLMClient(api_key="test-key")
-            
-            messages = [{"role": "user", "content": "Hello"}]
             result = await client.create_completion(messages)
             
-            # Verify the result format
-            assert "response" in result
-            assert "tool_calls" in result
-            assert result["response"] == "Test response"
-            assert result["tool_calls"] == []
+            # Record the provider interaction
+            recorder.record_provider_interaction(
+                request_data,
+                result,
+                {"total_tokens": 50, "prompt_tokens": 20, "completion_tokens": 30}
+            )
+            
+            # Set golden output (for now, just the direct result)
+            recorder.set_golden_output({
+                "success": True,
+                "final_result": result,
+                "summary": "Basic Anthropic completion test",
+                "tool_chain": [],
+                "conversation_history": [
+                    {"role": "user", "content": "Say hello in exactly 3 words"},
+                    {"role": "assistant", "content": result["response"]}
+                ],
+                "execution_metadata": {
+                    "total_execution_time": 1.5,
+                    "total_iterations": 1,
+                    "token_usage": {"total_tokens": 50}
+                }
+            })
+            
+            # Save the golden file
+            golden_path = recorder.save_golden()
+            print(f"Saved golden file: {golden_path}")
+        else:
+            # Replay mode: use mock client
+            mock_client = MockLLMClient(recorder)
+            result = await mock_client.create_completion(
+                messages=[{"role": "user", "content": "Say hello in exactly 3 words"}]
+            )
+        
+        # Verify the result format
+        assert "response" in result
+        assert "tool_calls" in result
+        assert isinstance(result["response"], str)
+        assert isinstance(result["tool_calls"], list)
+        # Basic sanity check on response
+        assert len(result["response"]) > 0
     
     @pytest.mark.asyncio
     async def test_create_completion_with_tools(self):

@@ -18,6 +18,16 @@ def format_tool_for_openai(tool: ToolInfo) -> Dict[str, Any]:
     }
 
 
+def _serialize_for_json(obj):
+    """Helper to handle non-serializable objects."""
+    if hasattr(obj, '__dict__'):
+        return str(obj)
+    elif hasattr(obj, '__str__'):
+        return str(obj)
+    else:
+        return repr(obj)
+
+
 def format_tool_response(response_content: Any) -> str:
     """
     Format tool response content for LLM consumption.
@@ -35,13 +45,13 @@ def format_tool_response(response_content: Any) -> str:
             return "\n".join(item.get("text", "") for item in response_content)
         # This could be data records (like SQL results)
         try:
-            return json.dumps(response_content, indent=2)
+            return json.dumps(response_content, indent=2, default=_serialize_for_json, ensure_ascii=False)
         except Exception:
             return str(response_content)
     elif isinstance(response_content, dict):
         # Single dictionary - return as JSON
         try:
-            return json.dumps(response_content, indent=2)
+            return json.dumps(response_content, indent=2, default=_serialize_for_json, ensure_ascii=False)
         except Exception:
             return str(response_content)
     else:

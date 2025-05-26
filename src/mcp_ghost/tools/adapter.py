@@ -24,6 +24,13 @@ class ToolNameAdapter:
         # Sanitize to ensure it matches OpenAI's pattern
         sanitized = re.sub(r'[^a-zA-Z0-9_-]', '_', combined)
         
+        # Limit length to 200 characters (reasonable limit for function names)
+        if len(sanitized) > 200:
+            # Truncate but try to keep both namespace and name parts
+            max_namespace = min(len(namespace), 80)
+            max_name = 200 - max_namespace - 1  # -1 for underscore
+            sanitized = f"{namespace[:max_namespace]}_{name[:max_name]}"
+        
         return sanitized
     
     @staticmethod
@@ -98,3 +105,41 @@ class ToolNameAdapter:
             original_name = f"{tool.namespace}.{tool.name}"
             mapping[provider_name] = original_name
         return mapping
+    
+    @staticmethod
+    def adapt_tools(tools: List[Dict], namespace: str, provider: str) -> List[Dict]:
+        """
+        Adapt a list of tools for a specific provider.
+        
+        Args:
+            tools: List of tool dictionaries from MCP server
+            namespace: Namespace to use for tool names
+            provider: Provider name ("openai", "anthropic", "gemini")
+            
+        Returns:
+            List of adapted tools with provider-compatible names
+        """
+        adapted_tools = []
+        
+        for tool in tools:
+            # Create provider-compatible tool name
+            original_name = tool["name"]
+            adapted_name = ToolNameAdapter.adapt_for_provider(namespace, original_name, provider)
+            
+            # Create adapted tool definition
+            adapted_tool = {
+                "type": "function",
+                "function": {
+                    "name": adapted_name,
+                    "description": tool.get("description", ""),
+                    "parameters": tool.get("parameters", {"type": "object", "properties": {}})
+                }
+            }
+            
+            # Store original name for mapping back during execution
+            adapted_tool["original_name"] = original_name
+            adapted_tool["server"] = tool.get("server", "unknown")
+            
+            adapted_tools.append(adapted_tool)
+        
+        return adapted_tools

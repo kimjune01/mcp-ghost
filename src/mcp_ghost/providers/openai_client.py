@@ -27,6 +27,9 @@ class OpenAILLMClient(OpenAIStyleMixin, BaseLLMClient):
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
     ) -> None:
+        if api_key is None:
+            raise ValueError("API key is required for OpenAI client")
+        
         self.model = model
         self.client = (
             OpenAI(api_key=api_key, base_url=api_base)

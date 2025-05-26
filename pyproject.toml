@@ -19,16 +19,13 @@ dependencies = [
     # MCP Protocol
     "chuk-tool-processor>=0.1.7",
     "chuk-mcp>=0.1.7",
-    
     # LLM Providers
     "openai>=1.55.3",
-    "anthropic>=0.51.0", 
+    "anthropic>=0.51.0",
     "google-genai>=1.15.0",
-    
     # Core utilities
     "python-dotenv>=1.0.1",
     "pydantic>=2.10.2",
-    
     # Optional UI (for debugging)
     "rich>=13.9.4",
 ]

@@ -29,6 +29,15 @@ class ServerInfo:
     status: str
     tool_count: int
     namespace: str
+    
+    def __post_init__(self):
+        """Validate ServerInfo fields."""
+        if self.id < 0:
+            raise ValueError("Server ID must be non-negative")
+        if not self.name:
+            raise ValueError("Server name cannot be empty")
+        if self.tool_count < 0:
+            raise ValueError("Tool count must be non-negative")
 
 
 @dataclass

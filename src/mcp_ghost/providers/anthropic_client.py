@@ -73,10 +73,12 @@ class AnthropicLLMClient(OpenAIStyleMixin, BaseLLMClient):
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
     ) -> None:
+        if api_key is None:
+            raise ValueError("API key is required for Anthropic client")
+            
         self.model = model
         kwargs: Dict[str, Any] = {"base_url": api_base} if api_base else {}
-        if api_key:
-            kwargs["api_key"] = api_key
+        kwargs["api_key"] = api_key
         self.client = Anthropic(**kwargs)
 
     # ------------- helpers
