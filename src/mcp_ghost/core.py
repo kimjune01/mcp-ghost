@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class MCPGhostConfig:
     """Configuration for MCP-Ghost execution."""
-    server_config: Dict[str, Any]
+    server_config: Union[Dict[str, Any], str, Path]
     system_prompt: str
     provider: str  # "openai", "anthropic", "gemini"
     api_key: str
@@ -34,51 +34,41 @@ class MCPGhostConfig:
     enable_backtracking: bool = True
     conversation_memory: bool = True
     
-    @classmethod
-    def from_file(cls, config_path: Union[str, Path], **overrides) -> 'MCPGhostConfig':
-        """Load configuration from a JSON or YAML file.
+    def __post_init__(self):
+        """Process server_config if it's a file path."""
+        if isinstance(self.server_config, (str, Path)):
+            self.server_config = self._load_server_config(self.server_config)
+    
+    def _load_server_config(self, config_path: Union[str, Path]) -> Dict[str, Any]:
+        """Load MCP server configuration from a file.
         
         Args:
-            config_path: Path to configuration file (.json or .yaml/.yml)
-            **overrides: Additional parameters to override config file values
+            config_path: Path to MCP server config file (.json)
             
         Returns:
-            MCPGhostConfig instance
+            Dictionary containing server configuration
             
         Raises:
             FileNotFoundError: If config file doesn't exist
-            ValueError: If config file format is invalid or required fields missing
+            ValueError: If config file format is invalid
         """
         config_path = Path(config_path)
         
         if not config_path.exists():
-            raise FileNotFoundError(f"Configuration file not found: {config_path}")
+            raise FileNotFoundError(f"MCP server config file not found: {config_path}")
         
-        # Load config based on file extension
+        # Load JSON config (Claude Desktop format)
         if config_path.suffix.lower() == '.json':
             with open(config_path, 'r') as f:
                 config_data = json.load(f)
-        elif config_path.suffix.lower() in ['.yaml', '.yml']:
-            try:
-                import yaml
-                with open(config_path, 'r') as f:
-                    config_data = yaml.safe_load(f)
-            except ImportError:
-                raise ValueError("PyYAML is required for YAML config files. Install with: pip install pyyaml")
         else:
-            raise ValueError(f"Unsupported config file format: {config_path.suffix}. Use .json, .yaml, or .yml")
+            raise ValueError(f"MCP server config must be JSON format, got: {config_path.suffix}")
         
-        # Validate required fields
-        required_fields = ['server_config', 'system_prompt', 'provider', 'api_key', 'user_prompt']
-        missing_fields = [field for field in required_fields if field not in config_data]
-        if missing_fields:
-            raise ValueError(f"Missing required fields in config file: {missing_fields}")
+        # Validate structure - should have mcpServers key
+        if 'mcpServers' not in config_data:
+            raise ValueError("MCP server config must contain 'mcpServers' key")
         
-        # Apply overrides
-        config_data.update(overrides)
-        
-        # Create config instance
-        return cls(**config_data)
+        return config_data
 
 
 @dataclass 
@@ -107,10 +97,9 @@ class MCPGhostResult:
     execution_metadata: Dict[str, Any] = field(default_factory=dict)
 
 
-# MCP imports - using standard MCP Python SDK
+# MCP imports - using official MCP Python SDK
 try:
-    from mcp import ClientSession, StdioServerParameters
-    from mcp.client.stdio import stdio_client
+    from mcp import ClientSession, StdioServerParameters, stdio_client
     MCP_AVAILABLE = True
 except ImportError:
     # Define placeholder for testing when MCP isn't available
