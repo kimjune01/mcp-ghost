@@ -8,10 +8,12 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
+from pathlib import Path
 import time
 import uuid
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
@@ -31,6 +33,52 @@ class MCPGhostConfig:
     max_iterations: int = 10
     enable_backtracking: bool = True
     conversation_memory: bool = True
+    
+    @classmethod
+    def from_file(cls, config_path: Union[str, Path], **overrides) -> 'MCPGhostConfig':
+        """Load configuration from a JSON or YAML file.
+        
+        Args:
+            config_path: Path to configuration file (.json or .yaml/.yml)
+            **overrides: Additional parameters to override config file values
+            
+        Returns:
+            MCPGhostConfig instance
+            
+        Raises:
+            FileNotFoundError: If config file doesn't exist
+            ValueError: If config file format is invalid or required fields missing
+        """
+        config_path = Path(config_path)
+        
+        if not config_path.exists():
+            raise FileNotFoundError(f"Configuration file not found: {config_path}")
+        
+        # Load config based on file extension
+        if config_path.suffix.lower() == '.json':
+            with open(config_path, 'r') as f:
+                config_data = json.load(f)
+        elif config_path.suffix.lower() in ['.yaml', '.yml']:
+            try:
+                import yaml
+                with open(config_path, 'r') as f:
+                    config_data = yaml.safe_load(f)
+            except ImportError:
+                raise ValueError("PyYAML is required for YAML config files. Install with: pip install pyyaml")
+        else:
+            raise ValueError(f"Unsupported config file format: {config_path.suffix}. Use .json, .yaml, or .yml")
+        
+        # Validate required fields
+        required_fields = ['server_config', 'system_prompt', 'provider', 'api_key', 'user_prompt']
+        missing_fields = [field for field in required_fields if field not in config_data]
+        if missing_fields:
+            raise ValueError(f"Missing required fields in config file: {missing_fields}")
+        
+        # Apply overrides
+        config_data.update(overrides)
+        
+        # Create config instance
+        return cls(**config_data)
 
 
 @dataclass 
@@ -86,6 +134,12 @@ async def mcp_ghost(config: MCPGhostConfig) -> MCPGhostResult:
     Execute intelligent multi-step MCP tool operations via LLM.
     
     Supports tool chaining, backtracking, and error recovery like Claude Desktop.
+    
+    Args:
+        config: MCPGhostConfig instance (server_config can be dict or file path)
+        
+    Returns:
+        MCPGhostResult with execution details
     """
     start_time = time.time()
     

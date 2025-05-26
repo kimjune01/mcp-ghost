@@ -16,9 +16,8 @@ license = {text = "MIT"}
 
 # Core dependencies - NO mcp-cli dependency
 dependencies = [
-    # MCP Protocol
-    "chuk-tool-processor>=0.1.7",
-    "chuk-mcp>=0.1.7",
+    # MCP Protocol - Official SDK
+    "mcp>=1.5.0",
     # LLM Providers
     "openai>=1.55.3",
     "anthropic>=0.51.0",

@@ -15,8 +15,10 @@ MCP-Ghost provides a programmatic interface for interacting with Model Context P
 ## 🎯 Supported Providers
 
 - **OpenAI**: GPT-4o, GPT-4o-mini, GPT-4-turbo, GPT-3.5-turbo
-- **Anthropic (Claude)**: Claude-3.5-sonnet, Claude-3-opus, Claude-3-sonnet, Claude-3-haiku  
-- **Google (Gemini)**: Gemini-1.5-pro, Gemini-1.5-flash, Gemini-1.0-pro
+- **Anthropic (Claude)**: Claude-4-opus, Claude-4-sonnet, Claude-3.7-sonnet, Claude-3.5-sonnet, Claude-3-opus, Claude-3-sonnet, Claude-3-haiku  
+- **Google (Gemini)**: Gemini-2.5-pro, Gemini-2.5-flash, Gemini-2.0-flash, Gemini-1.5-pro, Gemini-1.5-flash
+
+> **💡 Recommended Models**: For best **cost-performance balance**, use **Claude-4-sonnet**, **Gemini-2.5-flash**, or **GPT-4o-mini**. For **maximum capability** in complex tool orchestration, use **Claude-4-opus** or **Gemini-2.5-pro**.
 
 ## 📦 Installation
 
@@ -31,6 +33,7 @@ import asyncio
 from mcp_ghost import mcp_ghost, MCPGhostConfig
 
 async def main():
+    # Option 1: Inline server config
     config = MCPGhostConfig(
         server_config={
             "mcpServers": {
@@ -42,6 +45,15 @@ async def main():
         },
         system_prompt="You are a helpful database assistant.",
         provider="openai",
+        api_key="sk-...",
+        user_prompt="List all tables and describe their schemas"
+    )
+    
+    # Option 2: Load server config from file (Claude Desktop format)
+    config = MCPGhostConfig(
+        server_config="path/to/server_config.json",  # or dict as above
+        system_prompt="You are a helpful database assistant.",
+        provider="openai", 
         api_key="sk-...",
         user_prompt="List all tables and describe their schemas"
     )
@@ -104,5 +116,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 ## 🙏 Acknowledgments
 
 Built on top of:
-- [CHUK-MCP](https://github.com/chrishayuk/chuk-mcp) - MCP protocol implementation
-- [CHUK Tool Processor](https://github.com/chrishayuk/chuk-tool-processor) - Tool execution framework
+- [Official MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk) - Model Context Protocol implementation

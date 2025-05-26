@@ -119,16 +119,16 @@ MCP-Ghost returns a structured dictionary containing:
 
 MCP-Ghost should be copy-pastable with minimal external dependencies:
 
-### Required Dependencies (from mcp_round_trip.py)
+### Required Dependencies
 - `asyncio` (stdlib)
 - `json` (stdlib)
 - `logging` (stdlib)
 - `typing` (stdlib)
 - `dotenv` - for environment variable loading
-- `chuk_tool_processor` - for MCP protocol handling
-  - `chuk_tool_processor.mcp.setup_mcp_stdio`
-  - `chuk_tool_processor.registry.ToolRegistryProvider`
-  - `chuk_tool_processor.core.processor.ToolProcessor`
+- `mcp` - Official MCP Python SDK for protocol handling
+  - `mcp.ClientSession`
+  - `mcp.StdioServerParameters`
+  - `mcp.client.stdio.stdio_client`
 
 ### Dependencies to Rewrite (from mcp-cli)
 These functions from `mcp-cli` should be rewritten within MCP-Ghost:
@@ -255,13 +255,13 @@ MCP-Ghost must provide seamless integration across the three major LLM providers
 - **Authentication**: API key via `OPENAI_API_KEY` or parameter
 
 #### 2. **Anthropic (Claude)**
-- **Models**: Claude-3.5-sonnet, Claude-3-opus, Claude-3-sonnet, Claude-3-haiku
+- **Models**: Claude-4-opus, Claude-4-sonnet, Claude-3.7-sonnet, Claude-3.5-sonnet, Claude-3-opus, Claude-3-sonnet, Claude-3-haiku
 - **Function Calling**: Anthropic's tool use format
 - **Tool Names**: More flexible naming compared to OpenAI
 - **Authentication**: API key via `ANTHROPIC_API_KEY` or parameter
 
 #### 3. **Google (Gemini)**
-- **Models**: Gemini-1.5-pro, Gemini-1.5-flash, Gemini-1.0-pro
+- **Models**: Gemini-2.5-pro, Gemini-2.5-flash, Gemini-2.0-flash, Gemini-1.5-pro, Gemini-1.5-flash
 - **Function Calling**: Google's function calling schema
 - **Tool Names**: Google-specific formatting requirements
 - **Authentication**: API key via `GOOGLE_API_KEY` or parameter
