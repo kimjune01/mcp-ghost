@@ -19,25 +19,30 @@ uv pip install -e ".[dev,testing]"
 
 ### Testing
 ```bash
-# Run core functionality tests (recommended)
-make test-core
-# or
-python run_core_tests.py
-
-# Run all tests (includes problematic provider/E2E tests)
+# Run core functionality tests (default & recommended)
 make test
 # or
-uv run pytest
+make test-core
+# or  
+python run_core_tests.py
 
-# Run specific test markers
-pytest -m unit                   # Unit tests only
-pytest -m integration           # Integration tests only
-pytest -m record_golden         # Record new golden tests (requires API keys)
-pytest -m slow                  # Tests requiring API calls
+# Run ALL tests (requires external dependencies - see below)
+make test-all
+# or
+uv run pytest
 
 # Run single test file
 uv run pytest tests/test_core.py
 ```
+
+**⚠️ External Dependencies for Full Test Suite**:
+The `make test-all` command runs additional tests that require:
+- **MCP Servers**: `mcp-server-sqlite` and other MCP servers installed
+- **API Keys**: Valid OpenAI, Anthropic, and Google API keys in environment
+- **Network Access**: Tests make real HTTP calls to LLM providers
+- **External Processes**: Tests spawn MCP server subprocesses
+
+The default `make test` avoids these dependencies and runs quickly (~1 second).
 
 ### Code Quality
 ```bash

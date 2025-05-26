@@ -35,10 +35,12 @@ def assert_mcp_ghost_response(result):
 class TestE2ECRUD:
     """End-to-end CRUD tests for MCP-Ghost."""
 
-    @pytest.fixture
+    @pytest.fixture(scope="function")
     def temp_db(self):
         """Create a temporary SQLite database for testing."""
-        with tempfile.NamedTemporaryFile(suffix='.db', delete=False) as f:
+        import time
+        timestamp = int(time.time() * 1000000)  # microsecond timestamp
+        with tempfile.NamedTemporaryFile(suffix=f'_crud_{timestamp}.db', delete=False) as f:
             db_path = f.name
         
         # Initialize database with test schema
@@ -71,13 +73,13 @@ class TestE2ECRUD:
         conn.commit()
         conn.close()
         
-        yield db_path
+        yield {"path": db_path, "timestamp": timestamp}
         
         # Cleanup
         if os.path.exists(db_path):
             os.unlink(db_path)
 
-    @pytest.fixture
+    @pytest.fixture(scope="function")
     def ghost_config(self, temp_db):
         """Create a test configuration for MCP-Ghost."""
         return MCPGhostConfig(
@@ -85,7 +87,7 @@ class TestE2ECRUD:
                 "mcpServers": {
                     "sqlite": {
                         "command": "uvx",
-                        "args": ["mcp-server-sqlite", "--db-path", temp_db]
+                        "args": ["mcp-server-sqlite", "--db-path", temp_db["path"]]
                     }
                 }
             },
@@ -94,7 +96,7 @@ class TestE2ECRUD:
             api_key="test-key",  # Mock key for testing
             user_prompt="Test prompt",  # Will be overridden in tests
             model="gpt-4",
-            namespace="test_crud",
+            namespace=f"test_crud_{temp_db['timestamp']}",
             timeout=30.0,
             max_iterations=5,
             enable_backtracking=True,
@@ -391,10 +393,12 @@ class TestE2ECRUD:
 class TestCRUDEdgeCases:
     """Edge case tests for CRUD operations."""
 
-    @pytest.fixture
+    @pytest.fixture(scope="function")
     def temp_db(self):
         """Create a temporary SQLite database for testing."""
-        with tempfile.NamedTemporaryFile(suffix='.db', delete=False) as f:
+        import time
+        timestamp = int(time.time() * 1000000)  # microsecond timestamp
+        with tempfile.NamedTemporaryFile(suffix=f'_edge_{timestamp}.db', delete=False) as f:
             db_path = f.name
         
         conn = sqlite3.connect(db_path)
@@ -413,12 +417,12 @@ class TestCRUDEdgeCases:
         conn.commit()
         conn.close()
         
-        yield db_path
+        yield {"path": db_path, "timestamp": timestamp}
         
         if os.path.exists(db_path):
             os.unlink(db_path)
 
-    @pytest.fixture
+    @pytest.fixture(scope="function")
     def ghost_config(self, temp_db):
         """Create a test configuration for MCP-Ghost."""
         return MCPGhostConfig(
@@ -426,7 +430,7 @@ class TestCRUDEdgeCases:
                 "mcpServers": {
                     "sqlite": {
                         "command": "uvx",
-                        "args": ["mcp-server-sqlite", "--db-path", temp_db]
+                        "args": ["mcp-server-sqlite", "--db-path", temp_db["path"]]
                     }
                 }
             },
@@ -435,7 +439,7 @@ class TestCRUDEdgeCases:
             api_key="test-key",
             user_prompt="Test prompt",
             model="gpt-4",
-            namespace="test_crud",
+            namespace=f"test_edge_{temp_db['timestamp']}",
             timeout=30.0,
             max_iterations=5
         )

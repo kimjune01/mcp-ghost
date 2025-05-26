@@ -23,10 +23,12 @@ load_dotenv()
 class TestGoldenE2ECRUD:
     """Golden tests for end-to-end CRUD operations."""
     
-    @pytest.fixture
+    @pytest.fixture(scope="function")
     def temp_db(self):
         """Create a temporary SQLite database for testing."""
-        with tempfile.NamedTemporaryFile(suffix='.db', delete=False) as f:
+        import time
+        timestamp = int(time.time() * 1000000)  # microsecond timestamp
+        with tempfile.NamedTemporaryFile(suffix=f'_golden_{timestamp}.db', delete=False) as f:
             db_path = f.name
         
         # Initialize database with test schema
@@ -59,7 +61,7 @@ class TestGoldenE2ECRUD:
         conn.commit()
         conn.close()
         
-        yield db_path
+        yield {"path": db_path, "timestamp": timestamp}
         
         # Cleanup
         os.unlink(db_path)
@@ -71,7 +73,7 @@ class TestGoldenE2ECRUD:
             "mcpServers": {
                 "sqlite": {
                     "command": "uvx",
-                    "args": ["mcp-server-sqlite", "--db-path", temp_db]
+                    "args": ["mcp-server-sqlite", "--db-path", temp_db["path"]]
                 }
             }
         }
@@ -248,10 +250,12 @@ class TestGoldenE2ECRUD:
 class TestGoldenComplexWorkflows:
     """Golden tests for complex multi-step workflows."""
     
-    @pytest.fixture
+    @pytest.fixture(scope="function")
     def temp_db(self):
         """Create a temporary SQLite database for testing."""
-        with tempfile.NamedTemporaryFile(suffix='.db', delete=False) as f:
+        import time
+        timestamp = int(time.time() * 1000000)  # microsecond timestamp
+        with tempfile.NamedTemporaryFile(suffix=f'_golden_complex_{timestamp}.db', delete=False) as f:
             db_path = f.name
         
         # Initialize database with test schema
@@ -284,7 +288,7 @@ class TestGoldenComplexWorkflows:
         conn.commit()
         conn.close()
         
-        yield db_path
+        yield {"path": db_path, "timestamp": timestamp}
         
         # Cleanup
         os.unlink(db_path)
@@ -296,7 +300,7 @@ class TestGoldenComplexWorkflows:
             "mcpServers": {
                 "sqlite": {
                     "command": "uvx",
-                    "args": ["mcp-server-sqlite", "--db-path", temp_db]
+                    "args": ["mcp-server-sqlite", "--db-path", temp_db["path"]]
                 }
             }
         }
@@ -417,7 +421,7 @@ class TestGoldenComplexWorkflows:
             pytest.skip("OPENAI_API_KEY not found in environment")
         
         # Pre-populate database with sample data
-        conn = sqlite3.connect(temp_db)
+        conn = sqlite3.connect(temp_db["path"])
         cursor = conn.cursor()
         
         # Add sample users

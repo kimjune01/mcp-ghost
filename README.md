@@ -92,15 +92,20 @@ MCP-Ghost is designed for use in larger architectures where:
 
 ## 🧪 Testing
 
-MCP-Ghost uses a golden/snapshot testing framework to minimize LLM API costs:
+MCP-Ghost uses a focused core test suite for fast, reliable development:
 
 ```bash
-# Run tests (uses recorded golden files)
-pytest
+# Run core functionality tests (recommended)
+make test
+
+# Run all tests (requires external dependencies)
+make test-all
 
 # Record new golden tests (requires API keys)
 pytest -m record_golden
 ```
+
+The core test suite (145 tests) runs in ~1 second and covers all essential functionality without external dependencies.
 
 ## 🤝 Contributing
 

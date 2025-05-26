@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """
-Run core MCP-Ghost tests excluding problematic test categories.
+Run core MCP-Ghost tests excluding tests with external dependencies.
 
 This script runs the essential functionality tests while skipping:
-- Provider API tests (prefer golden tests)
-- E2E tests (require running MCP servers)  
-- Complex mock-based tests (prefer golden tests)
+- Provider API tests (require real API keys and network calls)
+- E2E tests (require running MCP servers like mcp-server-sqlite)  
+- Golden tests (require API keys for recording)
+- Complex integration tests (require external processes)
+
+This ensures fast, reliable testing without external dependencies.
 """
 
 import subprocess
@@ -31,7 +34,7 @@ def main():
     ]
     
     print("Running core MCP-Ghost functionality tests...")
-    print("Skipping: provider API tests, E2E tests, complex mocks")
+    print("Skipping: provider API tests, E2E tests, tests requiring external dependencies")
     print("Command:", " ".join(cmd))
     print()
     
@@ -40,8 +43,10 @@ def main():
     if result.returncode == 0:
         print("\n✅ All core functionality tests passed!")
         print("Core components working: config, tools, utils, client factory")
+        print("\nFor full test suite (with external dependencies): make test-all")
     else:
         print(f"\n❌ Some tests failed (exit code: {result.returncode})")
+        print("This indicates issues with core functionality, not external dependencies.")
     
     return result.returncode
 

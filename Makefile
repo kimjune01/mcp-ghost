@@ -6,8 +6,9 @@ help:
 	@echo "Available commands:"
 	@echo "  install      Install package in development mode"
 	@echo "  install-dev  Install with development dependencies"
-	@echo "  test         Run all tests"
-	@echo "  test-core    Run core functionality tests (recommended)"
+	@echo "  test         Run core functionality tests (default & recommended)"
+	@echo "  test-all     Run all tests (requires external dependencies)"
+	@echo "  test-core    Run core functionality tests (same as 'test')"
 	@echo "  clean        Clean build artifacts"
 	@echo "  build        Build package"
 	@echo "  format       Format code with black"
@@ -20,6 +21,9 @@ install-dev:
 	uv pip install -e ".[dev,testing]"
 
 test:
+	python run_core_tests.py
+
+test-all:
 	uv run pytest
 
 test-core:
