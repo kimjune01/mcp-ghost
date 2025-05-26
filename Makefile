@@ -6,7 +6,8 @@ help:
 	@echo "Available commands:"
 	@echo "  install      Install package in development mode"
 	@echo "  install-dev  Install with development dependencies"
-	@echo "  test         Run tests"
+	@echo "  test         Run all tests"
+	@echo "  test-core    Run core functionality tests (recommended)"
 	@echo "  clean        Clean build artifacts"
 	@echo "  build        Build package"
 	@echo "  format       Format code with black"
@@ -20,6 +21,9 @@ install-dev:
 
 test:
 	uv run pytest
+
+test-core:
+	python run_core_tests.py
 
 clean:
 	rm -rf build/

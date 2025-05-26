@@ -19,7 +19,12 @@ uv pip install -e ".[dev,testing]"
 
 ### Testing
 ```bash
-# Run all tests
+# Run core functionality tests (recommended)
+make test-core
+# or
+python run_core_tests.py
+
+# Run all tests (includes problematic provider/E2E tests)
 make test
 # or
 uv run pytest
