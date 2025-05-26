@@ -121,19 +121,6 @@ class AnthropicLLMClient(OpenAIStyleMixin, BaseLLMClient):
                 sys_txt.append(msg.get("content", ""))
                 continue
 
-            if role == "assistant" and msg.get("tool_calls"):
-                blocks = [
-                    {
-                        "type": "tool_use",
-                        "id": tc["id"],
-                        "name": tc["function"]["name"],
-                        "input": json.loads(tc["function"].get("arguments", "{}")),
-                    }
-                    for tc in msg["tool_calls"]
-                ]
-                out.append({"role": "assistant", "content": blocks})
-                continue
-
             if role == "tool":
                 out.append(
                     {
@@ -148,6 +135,19 @@ class AnthropicLLMClient(OpenAIStyleMixin, BaseLLMClient):
                         ],
                     }
                 )
+                continue
+
+            if role == "assistant" and msg.get("tool_calls"):
+                blocks = [
+                    {
+                        "type": "tool_use",
+                        "id": tc["id"],
+                        "name": tc["function"]["name"],
+                        "input": json.loads(tc["function"].get("arguments", "{}")),
+                    }
+                    for tc in msg["tool_calls"]
+                ]
+                out.append({"role": "assistant", "content": blocks})
                 continue
 
             if role in {"user", "assistant"}:

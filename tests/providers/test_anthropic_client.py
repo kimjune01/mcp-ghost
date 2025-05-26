@@ -90,7 +90,10 @@ class TestAnthropicLLMClient:
         # Check tool use format
         tool_message = None
         for msg in anthropic_messages:
-            if msg.get("role") == "assistant" and isinstance(msg.get("content"), list):
+            if (msg.get("role") == "assistant" and 
+                isinstance(msg.get("content"), list) and 
+                msg.get("content") and 
+                msg["content"][0].get("type") == "tool_use"):
                 tool_message = msg
                 break
         
